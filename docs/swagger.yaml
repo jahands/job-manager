@@ -1,4 +1,32 @@
+definitions:
+  main.Job:
+    properties:
+      created_on:
+        type: string
+      in_use:
+        type: boolean
+      job_key:
+        type: string
+      last_used_on:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+  title: Job Manager API
+paths:
+  /v1/:jobId:
+    get:
+      consumes:
+      - '*/*'
+      description: get the status of server.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Job'
+      summary: Show the status of server.
+      tags:
+      - root
 swagger: "2.0"

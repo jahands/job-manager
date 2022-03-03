@@ -1,7 +1,51 @@
 {
     "swagger": "2.0",
     "info": {
+        "title": "Job Manager API",
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/v1/:jobId": {
+            "get": {
+                "description": "get the status of server.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Show the status of server.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Job"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.Job": {
+            "type": "object",
+            "properties": {
+                "created_on": {
+                    "type": "string"
+                },
+                "in_use": {
+                    "type": "boolean"
+                },
+                "job_key": {
+                    "type": "string"
+                },
+                "last_used_on": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }

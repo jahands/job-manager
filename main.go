@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,21 +20,18 @@ const JobPrefix = "job:"
 func jobKey(jobId string) string {
 	return JobPrefix + jobId
 }
-func main() {
-	// Setup redis
-	// ctx := context.Background()
-	rdb := redis.NewClient(&redis.Options{
-		Addr: getEnv("REDIS_URL", "localhost:6379"),
-		DB:   0, // use default DB
-	})
 
+// @title Job Manager API
+func main() {
 	// Setup gin
 	r := gin.Default()
-
 	// Add auth
 	r.Use(func(c *gin.Context) {
-		if c.Request.URL.Query().Get("api_key") != getEnv("API_KEY", "x") {
-			c.AbortWithError(401, fmt.Errorf("unauthorized"))
+		if !strings.HasPrefix(c.Request.URL.Path, "/swagger/") {
+			if c.Request.URL.Query().Get("api_key") != getEnv("API_KEY", "x") {
+				c.AbortWithError(401, fmt.Errorf("unauthorized"))
+				return
+			}
 		}
 	})
 
@@ -42,23 +40,8 @@ func main() {
 	// Create router
 	v1 := r.Group("/v1")
 	{
-		// @BasePath /v1
-		// @Summary Add new job (or replace existing)
-		v1.PUT("/jobs/:jobId", func(c *gin.Context) {
-			jobId := c.Param("jobId")
-			job := Job{
-				JobKey:  jobId,
-				Created: time.Now(),
-				InUse:   false,
-			}
 
-			err := rdb.Set(jobKey(jobId), job, 0).Err()
-			if err != nil {
-				c.AbortWithStatusJSON(500, gin.H{"error": "error creating job"})
-				return
-			}
-			c.JSON(200, gin.H{"result": "success"})
-		})
+		v1.PUT("/jobs/:jobId", PutJobById)
 
 		// Update job as still in use
 		v1.POST("/jobs/:jobId", func(c *gin.Context) {
@@ -67,24 +50,24 @@ func main() {
 			jsonStr, err := rdb.Get(jobKey(jobId)).Bytes()
 			if err != nil {
 				if err == redis.Nil {
-					c.AbortWithStatusJSON(404, gin.H{"error": "job not found"})
+					c.AbortWithStatusJSON(404, ErrorResponse{"job not found"})
 					return
 				}
-				c.AbortWithStatusJSON(500, gin.H{"error": "error getting job"})
+				c.AbortWithStatusJSON(500, ErrorResponse{"error getting job"})
 				return
 			}
 			if err = job.UnmarshalBinary(jsonStr); err != nil {
-				c.AbortWithStatusJSON(500, gin.H{"error": "error unmarshaling job"})
+				c.AbortWithStatusJSON(500, ErrorResponse{"error unmarshaling job"})
 				return
 			}
 			job.InUse = true
 			job.LastInUse = time.Now()
 			err = rdb.Set(jobKey(jobId), job, 0).Err()
 			if err != nil {
-				c.AbortWithStatusJSON(500, gin.H{"error": "error updating job"})
+				c.AbortWithStatusJSON(500, ErrorResponse{"error updating job"})
 				return
 			}
-			c.JSON(200, gin.H{"result": "success"})
+			c.JSON(200, SuccessResponse{"success"})
 		})
 
 		// Get all jobs
@@ -92,15 +75,15 @@ func main() {
 			jobs, err := getAllJobs(rdb)
 			if err != nil {
 				if _, ok := err.(*NotFoundError); ok {
-					c.AbortWithStatusJSON(404, gin.H{"error": "no jobs found"})
+					c.AbortWithStatusJSON(404, ErrorResponse{"no jobs found"})
 					return
 				}
-				c.AbortWithStatusJSON(500, gin.H{"error": err})
+				c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
 				return
 			} else if len(jobs) == 0 {
-				c.AbortWithStatusJSON(404, gin.H{"error": "no jobs found"})
+				c.AbortWithStatusJSON(404, ErrorResponse{"no jobs found"})
 			}
-			c.JSON(200, gin.H{"result": jobs})
+			c.JSON(200, JobsResponse{jobs})
 		})
 
 		// Get unused job and mark as in use
@@ -110,7 +93,7 @@ func main() {
 			// Find an unused job, lock it, and return it
 			jobs, err := getAllJobs(rdb)
 			if err != nil {
-				c.AbortWithStatusJSON(500, gin.H{"error": err})
+				c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
 				return
 			}
 			now := time.Now()
@@ -119,7 +102,7 @@ func main() {
 			if minAgeStr != "" {
 				minAge, err = strconv.Atoi(minAgeStr)
 				if err != nil {
-					c.AbortWithStatusJSON(400, gin.H{"error": "error parsing min_age"})
+					c.AbortWithStatusJSON(400, ErrorResponse{"error parsing min_age"})
 				}
 			}
 			for _, job := range jobs {
@@ -129,14 +112,14 @@ func main() {
 					job.LastInUse = time.Now()
 					err := rdb.Set(jobKey(job.JobKey), job, 0).Err()
 					if err != nil {
-						c.AbortWithStatusJSON(500, gin.H{"error": err})
+						c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
 						return
 					}
-					c.JSON(200, gin.H{"result": job})
+					c.JSON(200, JobResponse{job})
 					return
 				}
 			}
-			c.AbortWithStatusJSON(404, gin.H{"error": "no jobs available"})
+			c.AbortWithStatusJSON(404, ErrorResponse{"no jobs available"})
 		})
 
 		// Get a job by id
@@ -146,17 +129,17 @@ func main() {
 			jsonStr, err := rdb.Get(JobPrefix + jobId).Bytes()
 			if err != nil {
 				if err == redis.Nil {
-					c.AbortWithStatusJSON(404, gin.H{"error": "job not found"})
+					c.AbortWithStatusJSON(404, ErrorResponse{"job not found"})
 					return
 				}
-				c.AbortWithStatusJSON(500, gin.H{"error": "error getting job"})
+				c.AbortWithStatusJSON(500, ErrorResponse{"error getting job"})
 				return
 			}
 			if err = job.UnmarshalBinary(jsonStr); err != nil {
-				c.AbortWithStatusJSON(500, gin.H{"error": "error unmarshaling job"})
+				c.AbortWithStatusJSON(500, ErrorResponse{"error unmarshaling job"})
 				return
 			}
-			c.JSON(200, gin.H{"result": job})
+			c.JSON(200, JobResponse{job})
 		})
 	}
 	// Add docs
@@ -164,6 +147,21 @@ func main() {
 	r.Run(":8080")
 }
 
+type JobsResponse struct {
+	Result []Job `json:"result"`
+}
+type JobResponse struct {
+	Result Job `json:"result"`
+}
+type SuccessResponse struct {
+	Result string `json:"result"`
+}
+type ResultResponse struct {
+	Result interface{} `json:"result"`
+}
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
 type Job struct {
 	JobKey    string    `json:"job_key"`
 	InUse     bool      `json:"in_use"`
