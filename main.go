@@ -71,6 +71,7 @@ type Job struct {
 	InUse     bool      `json:"in_use"`
 	Created   time.Time `json:"created_on"`
 	LastInUse time.Time `json:"last_used_on"`
+	InUseBy   string    `json:"in_use_by,omitempty"`
 }
 
 func (i Job) MarshalBinary() ([]byte, error) {

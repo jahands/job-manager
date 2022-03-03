@@ -10,6 +10,8 @@ definitions:
         type: string
       in_use:
         type: boolean
+      in_use_by:
+        type: string
       job_key:
         type: string
       last_used_on:
@@ -245,6 +247,11 @@ paths:
         in: query
         name: api_key
         required: true
+        type: string
+      - description: Who's using this job (optional) eg. hostname of machine using
+          it.
+        in: query
+        name: in_use_by
         type: string
       produces:
       - application/json

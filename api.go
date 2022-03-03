@@ -24,6 +24,7 @@ func jobKey(jobId string, namespace string) string {
 // @Param namespace path string true "Namespace of job(s)"
 // @Param jobId path string true "Job ID"
 // @Param api_key query string true "API Key"
+// @Param in_use_by query string false "Who's using this job (optional) eg. hostname of machine using it."
 // @Accept */*
 // @Produce json
 // @Success 200 {object} SuccessResponse
@@ -31,10 +32,12 @@ func jobKey(jobId string, namespace string) string {
 func PutJobById(c *gin.Context) {
 	jobId := c.Param("jobId")
 	namespace := c.Param("namespace")
+	inUseBy := c.Query("in_use_by")
 	job := Job{
 		JobKey:  jobId,
 		Created: time.Now(),
 		InUse:   false,
+		InUseBy: inUseBy,
 	}
 
 	err := rdb.Set(jobKey(jobId, namespace), job, 0).Err()

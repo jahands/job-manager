@@ -214,6 +214,12 @@ const docTemplate = `{
                         "name": "api_key",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Who's using this job (optional) eg. hostname of machine using it.",
+                        "name": "in_use_by",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -356,6 +362,9 @@ const docTemplate = `{
                 },
                 "in_use": {
                     "type": "boolean"
+                },
+                "in_use_by": {
+                    "type": "string"
                 },
                 "job_key": {
                     "type": "string"
