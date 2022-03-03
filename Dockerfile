@@ -24,4 +24,6 @@ RUN go mod download
 
 RUN go build -o ./job-manager
 
+EXPOSE 8080
+
 CMD [ "./job-manager" ]
