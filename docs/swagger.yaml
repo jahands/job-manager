@@ -1,4 +1,9 @@
 definitions:
+  main.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   main.Job:
     properties:
       created_on:
@@ -10,23 +15,215 @@ definitions:
       last_used_on:
         type: string
     type: object
+  main.JobResponse:
+    properties:
+      result:
+        $ref: '#/definitions/main.Job'
+    type: object
+  main.JobsResponse:
+    properties:
+      result:
+        items:
+          $ref: '#/definitions/main.Job'
+        type: array
+    type: object
+  main.SuccessResponse:
+    properties:
+      result:
+        type: string
+    type: object
 info:
   contact: {}
   title: Job Manager API
 paths:
-  /v1/:jobId:
+  /job:
     get:
       consumes:
       - '*/*'
-      description: get the status of server.
+      description: Finds a job that either is not in-use or has been inactive for
+        more than the specified time.
+      parameters:
+      - description: Minimum age of job (last_used_on) in minutes before assuming
+          it's no longer in use (optional, defaults to never)
+        in: path
+        name: min_age
+        type: integer
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Job'
-      summary: Show the status of server.
+            $ref: '#/definitions/main.JobResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get an unused job and lock it as in-use
+      tags:
+      - root
+  /jobs/:
+    get:
+      consumes:
+      - '*/*'
+      description: Gets all jobs
+      parameters:
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.JobsResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get all jobs
+      tags:
+      - root
+  /jobs/{jobId}:
+    delete:
+      consumes:
+      - '*/*'
+      description: Deletes a job with specified id
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: string
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Delete a job with specified id
+      tags:
+      - root
+    get:
+      consumes:
+      - '*/*'
+      description: Gets a job with specified id
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: string
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.JobResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get a job with specified id
+      tags:
+      - root
+    post:
+      consumes:
+      - '*/*'
+      description: Used together with GET /job's min_age parameter so that inactive
+        jobs can be reused
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: string
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Update a job, marking it as still in use
+      tags:
+      - root
+    put:
+      consumes:
+      - '*/*'
+      description: Overwrites job if it exists.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: string
+      - description: API Key
+        in: query
+        name: api_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SuccessResponse'
+      summary: Insert/replace job with specified id
       tags:
       - root
 swagger: "2.0"

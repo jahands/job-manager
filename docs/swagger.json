@@ -5,9 +5,9 @@
         "contact": {}
     },
     "paths": {
-        "/v1/:jobId": {
+        "/job": {
             "get": {
-                "description": "get the status of server.",
+                "description": "Finds a job that either is not in-use or has been inactive for more than the specified time.",
                 "consumes": [
                     "*/*"
                 ],
@@ -17,12 +17,269 @@
                 "tags": [
                     "root"
                 ],
-                "summary": "Show the status of server.",
+                "summary": "Get an unused job and lock it as in-use",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Minimum age of job (last_used_on) in minutes before assuming it's no longer in use (optional, defaults to never)",
+                        "name": "min_age",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.Job"
+                            "$ref": "#/definitions/main.JobResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/": {
+            "get": {
+                "description": "Gets all jobs",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Get all jobs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.JobsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{jobId}": {
+            "get": {
+                "description": "Gets a job with specified id",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Get a job with specified id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.JobResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Overwrites job if it exists.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Insert/replace job with specified id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.SuccessResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Used together with GET /job's min_age parameter so that inactive jobs can be reused",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Update a job, marking it as still in use",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a job with specified id",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "root"
+                ],
+                "summary": "Delete a job with specified id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "api_key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
                         }
                     }
                 }
@@ -30,6 +287,14 @@
         }
     },
     "definitions": {
+        "main.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "main.Job": {
             "type": "object",
             "properties": {
@@ -43,6 +308,33 @@
                     "type": "string"
                 },
                 "last_used_on": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.JobResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/main.Job"
+                }
+            }
+        },
+        "main.JobsResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.Job"
+                    }
+                }
+            }
+        },
+        "main.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
                     "type": "string"
                 }
             }

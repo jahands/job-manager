@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -34,115 +33,26 @@ func main() {
 			}
 		}
 	})
-
-	// Set docs thing
-	docs.SwaggerInfo.BasePath = "/api/v1"
 	// Create router
 	v1 := r.Group("/v1")
 	{
-
+		// Add new job
 		v1.PUT("/jobs/:jobId", PutJobById)
-
 		// Update job as still in use
-		v1.POST("/jobs/:jobId", func(c *gin.Context) {
-			jobId := c.Param("jobId")
-			job := Job{}
-			jsonStr, err := rdb.Get(jobKey(jobId)).Bytes()
-			if err != nil {
-				if err == redis.Nil {
-					c.AbortWithStatusJSON(404, ErrorResponse{"job not found"})
-					return
-				}
-				c.AbortWithStatusJSON(500, ErrorResponse{"error getting job"})
-				return
-			}
-			if err = job.UnmarshalBinary(jsonStr); err != nil {
-				c.AbortWithStatusJSON(500, ErrorResponse{"error unmarshaling job"})
-				return
-			}
-			job.InUse = true
-			job.LastInUse = time.Now()
-			err = rdb.Set(jobKey(jobId), job, 0).Err()
-			if err != nil {
-				c.AbortWithStatusJSON(500, ErrorResponse{"error updating job"})
-				return
-			}
-			c.JSON(200, SuccessResponse{"success"})
-		})
-
+		v1.POST("/jobs/:jobId", PostJobStillInUse)
 		// Get all jobs
-		v1.GET("/jobs/", func(c *gin.Context) {
-			jobs, err := getAllJobs(rdb)
-			if err != nil {
-				if _, ok := err.(*NotFoundError); ok {
-					c.AbortWithStatusJSON(404, ErrorResponse{"no jobs found"})
-					return
-				}
-				c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
-				return
-			} else if len(jobs) == 0 {
-				c.AbortWithStatusJSON(404, ErrorResponse{"no jobs found"})
-			}
-			c.JSON(200, JobsResponse{jobs})
-		})
-
+		v1.GET("/jobs/", GetAllJobs)
 		// Get unused job and mark as in use
 		// optional ?min_age=<minutes> parameter to specify minimum age if in use
 		// If an in-use job is older than this, it will be assumed as not in use.
-		v1.GET("/job", func(c *gin.Context) {
-			// Find an unused job, lock it, and return it
-			jobs, err := getAllJobs(rdb)
-			if err != nil {
-				c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
-				return
-			}
-			now := time.Now()
-			minAgeStr := c.Request.URL.Query().Get("min_age")
-			var minAge int
-			if minAgeStr != "" {
-				minAge, err = strconv.Atoi(minAgeStr)
-				if err != nil {
-					c.AbortWithStatusJSON(400, ErrorResponse{"error parsing min_age"})
-				}
-			}
-			for _, job := range jobs {
-				// Send back jobs that are not in use or haven't been last_used_on for more than min_age
-				if !job.InUse || (minAge > 0 && now.Sub(job.LastInUse) > time.Minute*time.Duration(minAge)) {
-					job.InUse = true
-					job.LastInUse = time.Now()
-					err := rdb.Set(jobKey(job.JobKey), job, 0).Err()
-					if err != nil {
-						c.AbortWithStatusJSON(500, ErrorResponse{err.Error()})
-						return
-					}
-					c.JSON(200, JobResponse{job})
-					return
-				}
-			}
-			c.AbortWithStatusJSON(404, ErrorResponse{"no jobs available"})
-		})
-
+		v1.GET("/job", GetUnusedJob)
 		// Get a job by id
-		v1.GET("/jobs/:jobId", func(c *gin.Context) {
-			jobId := c.Param("jobId")
-			job := Job{}
-			jsonStr, err := rdb.Get(JobPrefix + jobId).Bytes()
-			if err != nil {
-				if err == redis.Nil {
-					c.AbortWithStatusJSON(404, ErrorResponse{"job not found"})
-					return
-				}
-				c.AbortWithStatusJSON(500, ErrorResponse{"error getting job"})
-				return
-			}
-			if err = job.UnmarshalBinary(jsonStr); err != nil {
-				c.AbortWithStatusJSON(500, ErrorResponse{"error unmarshaling job"})
-				return
-			}
-			c.JSON(200, JobResponse{job})
-		})
+		v1.GET("/jobs/:jobId", GetJobById)
+		// Delete a job by id
+		v1.DELETE("/jobs/:jobId", DeleteJobById)
 	}
 	// Add docs
+	docs.SwaggerInfo.BasePath = "/v1"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run(":8080")
 }
