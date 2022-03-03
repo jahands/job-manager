@@ -1,4 +1,4 @@
-module job-manager
+module github.com/jahands/job-manager
 
 go 1.17
 
