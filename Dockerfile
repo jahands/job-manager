@@ -17,10 +17,10 @@ WORKDIR $HOME
 COPY go.mod ./
 COPY go.sum ./
 COPY *.go ./
-COPY vendor ./
-COPY docs ./
+COPY vendor ./vendor
+COPY docs ./docs
 
-# RUN go mod download
+RUN go mod download
 
 RUN go build -o ./job-manager
 
