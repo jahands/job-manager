@@ -9,6 +9,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	docs "github.com/jahands/job-manager/docs"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 const JobPrefix = "job:"
@@ -34,10 +37,13 @@ func main() {
 		}
 	})
 
+	// Set docs thing
+	docs.SwaggerInfo.BasePath = "/api/v1"
 	// Create router
 	v1 := r.Group("/v1")
 	{
-		// Add new job (or replace existing)
+		// @BasePath /v1
+		// @Summary Add new job (or replace existing)
 		v1.PUT("/jobs/:jobId", func(c *gin.Context) {
 			jobId := c.Param("jobId")
 			job := Job{
@@ -153,7 +159,8 @@ func main() {
 			c.JSON(200, gin.H{"result": job})
 		})
 	}
-
+	// Add docs
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run(":8080")
 }
 
