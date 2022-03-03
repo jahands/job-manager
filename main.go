@@ -24,6 +24,7 @@ func main() {
 				c.AbortWithError(401, fmt.Errorf("unauthorized"))
 				return
 			}
+			c.Header("cache-control", "no-cache")
 		}
 	})
 	// Create router
