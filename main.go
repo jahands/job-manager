@@ -8,17 +8,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	docs "github.com/jahands/job-manager/docs"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
-const JobPrefix = "job:"
-
-func jobKey(jobId string) string {
-	return JobPrefix + jobId
-}
 
 // @title Job Manager API
 func main() {
@@ -37,19 +30,19 @@ func main() {
 	v1 := r.Group("/v1")
 	{
 		// Add new job
-		v1.PUT("/jobs/:jobId", PutJobById)
+		v1.PUT("/:namespace/jobs/:jobId", PutJobById)
 		// Update job as still in use
-		v1.POST("/jobs/:jobId", PostJobStillInUse)
+		v1.POST("/:namespace/jobs/:jobId", PostJobStillInUse)
 		// Get all jobs
-		v1.GET("/jobs/", GetAllJobs)
+		v1.GET("/:namespace/jobs/", GetAllJobs)
 		// Get unused job and mark as in use
 		// optional ?min_age=<minutes> parameter to specify minimum age if in use
 		// If an in-use job is older than this, it will be assumed as not in use.
-		v1.GET("/job", GetUnusedJob)
+		v1.GET("/:namespace/job", GetUnusedJob)
 		// Get a job by id
-		v1.GET("/jobs/:jobId", GetJobById)
+		v1.GET("/:namespace/jobs/:jobId", GetJobById)
 		// Delete a job by id
-		v1.DELETE("/jobs/:jobId", DeleteJobById)
+		v1.DELETE("/:namespace/jobs/:jobId", DeleteJobById)
 	}
 	// Add docs
 	docs.SwaggerInfo.BasePath = "/v1"
@@ -94,27 +87,6 @@ type NotFoundError struct{}
 
 func (e *NotFoundError) Error() string {
 	return "not found"
-}
-
-func getAllJobs(rdb *redis.Client) ([]Job, error) {
-	keys, err := rdb.Keys(JobPrefix + "*").Result()
-	if err != nil {
-		return nil, err
-	}
-	if len(keys) == 0 {
-		return nil, &NotFoundError{}
-	}
-	jobs := make([]Job, len(keys))
-	for i, key := range keys {
-		jobStr, err := rdb.Get(key).Bytes()
-		if err != nil {
-			return nil, err
-		}
-		if err = jobs[i].UnmarshalBinary(jobStr); err != nil {
-			return nil, err
-		}
-	}
-	return jobs, nil
 }
 
 func getEnv(key, fallback string) string {

@@ -5,7 +5,7 @@
         "contact": {}
     },
     "paths": {
-        "/job": {
+        "/{namespace}/job": {
             "get": {
                 "description": "Finds a job that either is not in-use or has been inactive for more than the specified time.",
                 "consumes": [
@@ -19,6 +19,13 @@
                 ],
                 "summary": "Get an unused job and lock it as in-use",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Minimum age of job (last_used_on) in minutes before assuming it's no longer in use (optional, defaults to never)",
@@ -55,7 +62,7 @@
                 }
             }
         },
-        "/jobs/": {
+        "/{namespace}/jobs/": {
             "get": {
                 "description": "Gets all jobs",
                 "consumes": [
@@ -69,6 +76,13 @@
                 ],
                 "summary": "Get all jobs",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "API Key",
@@ -99,7 +113,7 @@
                 }
             }
         },
-        "/jobs/{jobId}": {
+        "/{namespace}/jobs/{jobId}": {
             "get": {
                 "description": "Gets a job with specified id",
                 "consumes": [
@@ -113,6 +127,13 @@
                 ],
                 "summary": "Get a job with specified id",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",
@@ -164,6 +185,13 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Job ID",
                         "name": "jobId",
                         "in": "path",
@@ -187,7 +215,7 @@
                 }
             },
             "post": {
-                "description": "Used together with GET /job's min_age parameter so that inactive jobs can be reused",
+                "description": "Used together with GET /job's min_age parameter so that inactive jobs can be reused. Fails if the job doesn't exist",
                 "consumes": [
                     "*/*"
                 ],
@@ -199,6 +227,13 @@
                 ],
                 "summary": "Update a job, marking it as still in use",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",
@@ -248,6 +283,13 @@
                 ],
                 "summary": "Delete a job with specified id",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",

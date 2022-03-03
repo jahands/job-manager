@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/job": {
+        "/{namespace}/job": {
             "get": {
                 "description": "Finds a job that either is not in-use or has been inactive for more than the specified time.",
                 "consumes": [
@@ -30,6 +30,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get an unused job and lock it as in-use",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Minimum age of job (last_used_on) in minutes before assuming it's no longer in use (optional, defaults to never)",
@@ -66,7 +73,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/jobs/": {
+        "/{namespace}/jobs/": {
             "get": {
                 "description": "Gets all jobs",
                 "consumes": [
@@ -80,6 +87,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get all jobs",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "API Key",
@@ -110,7 +124,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/jobs/{jobId}": {
+        "/{namespace}/jobs/{jobId}": {
             "get": {
                 "description": "Gets a job with specified id",
                 "consumes": [
@@ -124,6 +138,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get a job with specified id",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",
@@ -175,6 +196,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Job ID",
                         "name": "jobId",
                         "in": "path",
@@ -198,7 +226,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Used together with GET /job's min_age parameter so that inactive jobs can be reused",
+                "description": "Used together with GET /job's min_age parameter so that inactive jobs can be reused. Fails if the job doesn't exist",
                 "consumes": [
                     "*/*"
                 ],
@@ -210,6 +238,13 @@ const docTemplate = `{
                 ],
                 "summary": "Update a job, marking it as still in use",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",
@@ -259,6 +294,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete a job with specified id",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace of job(s)",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Job ID",

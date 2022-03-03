@@ -36,13 +36,18 @@ info:
   contact: {}
   title: Job Manager API
 paths:
-  /job:
+  /{namespace}/job:
     get:
       consumes:
       - '*/*'
       description: Finds a job that either is not in-use or has been inactive for
         more than the specified time.
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Minimum age of job (last_used_on) in minutes before assuming
           it's no longer in use (optional, defaults to never)
         in: path
@@ -71,12 +76,17 @@ paths:
       summary: Get an unused job and lock it as in-use
       tags:
       - root
-  /jobs/:
+  /{namespace}/jobs/:
     get:
       consumes:
       - '*/*'
       description: Gets all jobs
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: API Key
         in: query
         name: api_key
@@ -100,12 +110,17 @@ paths:
       summary: Get all jobs
       tags:
       - root
-  /jobs/{jobId}:
+  /{namespace}/jobs/{jobId}:
     delete:
       consumes:
       - '*/*'
       description: Deletes a job with specified id
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Job ID
         in: path
         name: jobId
@@ -139,6 +154,11 @@ paths:
       - '*/*'
       description: Gets a job with specified id
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Job ID
         in: path
         name: jobId
@@ -171,8 +191,13 @@ paths:
       consumes:
       - '*/*'
       description: Used together with GET /job's min_age parameter so that inactive
-        jobs can be reused
+        jobs can be reused. Fails if the job doesn't exist
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Job ID
         in: path
         name: jobId
@@ -206,6 +231,11 @@ paths:
       - '*/*'
       description: Overwrites job if it exists.
       parameters:
+      - description: Namespace of job(s)
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Job ID
         in: path
         name: jobId
