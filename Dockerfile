@@ -20,7 +20,7 @@ COPY *.go ./
 COPY vendor ./
 COPY docs ./
 
-RUN go mod download
+# RUN go mod download
 
 RUN go build -o ./job-manager
 
