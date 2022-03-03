@@ -1,4 +1,4 @@
-module gin
+module job-manager
 
 go 1.17
 
