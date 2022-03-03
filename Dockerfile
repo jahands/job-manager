@@ -17,6 +17,8 @@ WORKDIR $HOME
 COPY go.mod ./
 COPY go.sum ./
 COPY *.go ./
+COPY vendor ./
+COPY docs ./
 
 RUN go mod download
 
