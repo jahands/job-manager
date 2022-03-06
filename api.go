@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"strconv"
 	"time"
 
@@ -17,6 +20,10 @@ func jobKey(jobId string, namespace string) string {
 	return JobPrefix + namespace + ":" + jobId
 }
 
+type PutJobByIdBody struct {
+	Meta interface{} `json:"meta,omitempty"`
+}
+
 // PutJobById godoc
 // @Summary Insert/replace job with specified id
 // @Description Overwrites job if it exists.
@@ -25,7 +32,8 @@ func jobKey(jobId string, namespace string) string {
 // @Param jobId path string true "Job ID"
 // @Param api_key query string true "API Key"
 // @Param in_use_by query string false "Who's using this job (optional) eg. hostname of machine using it."
-// @Accept */*
+// @Param body body PutJobByIdBody false "Job metadata (optional) - arbitrary json can be stored in {meta: {...}}"
+// @Accept application/json, */*
 // @Produce json
 // @Success 200 {object} SuccessResponse
 // @Router /{namespace}/jobs/{jobId} [put]
@@ -33,14 +41,27 @@ func PutJobById(c *gin.Context) {
 	jobId := c.Param("jobId")
 	namespace := c.Param("namespace")
 	inUseBy := c.Query("in_use_by")
+	jsonDataStr, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(500, ErrorResponse{"error reading request body"})
+		return
+	}
+	fmt.Println(string(jsonDataStr))
+	var metaData PutJobByIdBody
+	err = json.Unmarshal(jsonDataStr, &metaData)
+	if err != nil {
+		c.AbortWithStatusJSON(500, ErrorResponse{"error unmarshaling json body"})
+		return
+	}
 	job := Job{
 		JobKey:  jobId,
 		Created: time.Now(),
 		InUse:   false,
 		InUseBy: inUseBy,
+		Meta:    metaData.Meta,
 	}
 
-	err := rdb.Set(jobKey(jobId, namespace), job, 0).Err()
+	err = rdb.Set(jobKey(jobId, namespace), job, 0).Err()
 	if err != nil {
 		c.AbortWithStatusJSON(500, ErrorResponse{"error creating job"})
 		return

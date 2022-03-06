@@ -16,6 +16,7 @@ definitions:
         type: string
       last_used_on:
         type: string
+      meta: {}
     type: object
   main.JobResponse:
     properties:
@@ -28,6 +29,10 @@ definitions:
         items:
           $ref: '#/definitions/main.Job'
         type: array
+    type: object
+  main.PutJobByIdBody:
+    properties:
+      meta: {}
     type: object
   main.SuccessResponse:
     properties:
@@ -230,7 +235,8 @@ paths:
       - root
     put:
       consumes:
-      - '*/*'
+      - application/json
+      - ' */*'
       description: Overwrites job if it exists.
       parameters:
       - description: Namespace of job(s)
@@ -253,6 +259,12 @@ paths:
         in: query
         name: in_use_by
         type: string
+      - description: 'Job metadata (optional) - arbitrary json can be stored in {meta:
+          {...}}'
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/main.PutJobByIdBody'
       produces:
       - application/json
       responses:

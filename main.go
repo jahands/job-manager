@@ -67,11 +67,12 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 type Job struct {
-	JobKey    string    `json:"job_key"`
-	InUse     bool      `json:"in_use"`
-	Created   time.Time `json:"created_on"`
-	LastInUse time.Time `json:"last_used_on"`
-	InUseBy   string    `json:"in_use_by,omitempty"`
+	JobKey    string      `json:"job_key"`
+	InUse     bool        `json:"in_use"`
+	Created   time.Time   `json:"created_on"`
+	LastInUse time.Time   `json:"last_used_on"`
+	InUseBy   string      `json:"in_use_by,omitempty"`
+	Meta      interface{} `json:"meta,omitempty"`
 }
 
 func (i Job) MarshalBinary() ([]byte, error) {

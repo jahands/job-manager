@@ -184,7 +184,8 @@ const docTemplate = `{
             "put": {
                 "description": "Overwrites job if it exists.",
                 "consumes": [
-                    "*/*"
+                    "application/json",
+                    " */*"
                 ],
                 "produces": [
                     "application/json"
@@ -220,6 +221,14 @@ const docTemplate = `{
                         "description": "Who's using this job (optional) eg. hostname of machine using it.",
                         "name": "in_use_by",
                         "in": "query"
+                    },
+                    {
+                        "description": "Job metadata (optional) - arbitrary json can be stored in {meta: {...}}",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/main.PutJobByIdBody"
+                        }
                     }
                 ],
                 "responses": {
@@ -371,7 +380,8 @@ const docTemplate = `{
                 },
                 "last_used_on": {
                     "type": "string"
-                }
+                },
+                "meta": {}
             }
         },
         "main.JobResponse": {
@@ -391,6 +401,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/main.Job"
                     }
                 }
+            }
+        },
+        "main.PutJobByIdBody": {
+            "type": "object",
+            "properties": {
+                "meta": {}
             }
         },
         "main.SuccessResponse": {
